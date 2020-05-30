@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact type="exploded-war" name="Check user verify code login case:war exploded">
+    <output-path>$PROJECT_DIR$/out/artifacts/Check_user_verify_code_login_case_war_exploded</output-path>
+    <root id="root">
+      <element id="javaee-facet-resources" facet="Check user verify code login case/web/Web" />
+      <element id="directory" name="WEB-INF">
+        <element id="directory" name="classes">
+          <element id="module-output" name="Check user verify code login case" />
+        </element>
+      </element>
+    </root>
+  </artifact>
+</component>

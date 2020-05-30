@@ -1,0 +1,4 @@
+File Download Case:
+1.Simple page with a link
+2.click then pop up a download alert
+3.finish file download

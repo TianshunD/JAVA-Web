@@ -1,0 +1,158 @@
+/*
+黑盒测试/白盒测试
+Junit单元测试（白盒）
+*/
+public class Calculator {
+    public int add(int a, int b) {
+        return a+b;
+    }
+
+    public int sub(int a, int b) {
+        return a-b;
+    }
+}
+
+public class CalculatorTest {
+    @Test
+    public void addTest() {
+        Calculator cal = new Calculator();
+        Assert.assertEquals(6, cal.add(2,4)); //断言Expect和result相等，测试成功，否则失败
+    }
+
+    @Test
+    public void subTest() {
+        Calculator cal = new Calculator();
+        Assert.assertEquals(2,cal.sub(4,2));
+    }
+}
+
+//Junit before after
+public class CalculatorTest {
+    @Before //一般用于资源申请，最先自动执行
+    public void init() {
+        System.out.println("init..."); 
+    }
+	
+    @Test
+    public void addTest() {
+        Calculator cal = new Calculator();
+        Assert.assertEquals(6, cal.add(2,4));
+    }
+
+    @Test
+    public void subTest() {
+        Calculator cal = new Calculator();
+        Assert.assertEquals(2,cal.sub(4,2));
+    }
+
+    @After //用于释放资源，最后自动执行
+    public void close() {
+        System.out.println("close...."); 
+    }
+}
+
+//反射 框架设计灵魂
+//Class对象功能 获取功能
+//获取Class对象的方法（.class字节码文件在内存中生成的Class对象）
+//1.Class.forName(全类名（包名.类名）) 多用于配置文件，从物理文件读取
+Class cls = Class.forName("domain.Person");
+System.out.println(cls);
+
+//2.多用于参数传递
+Class<Person> personClass = Person.class;
+
+//3.
+Class<? extends Person> aClass = new Person().getClass(); 
+
+personClass == cls == aClass //指向的是内存中同一个对象，一个字节码文件(*.class)在一次程序运行中只会被加载一次
+
+//Class对象获取成员变量Field
+Class<Person> personClass = Person.class;
+        System.out.println(personClass); //class domain.Person
+        Field[] fields = personClass.getFields(); //public java.lang.String domain.Person.name   get public修饰的成员变量
+        for (Field field : fields) { 
+            System.out.println(field);
+        }
+		
+Field field = personClass.getField("name");
+        System.out.println(field); //public java.lang.String domain.Person.name
+		
+Person p = new Person("cass",12);
+        Object value = name.get(p);
+        System.out.println(value); //cass
+		name.set(p,"dean");
+        System.out.println(name.get(p)); //dean
+
+	Field[] declaredFields = personClass.getDeclaredFields(); //获取所有的成员变量
+        for (Field declaredField : declaredFields) {
+            System.out.println(declaredField);
+        }//public java.lang.String domain.Person.name
+	     //private int domain.Person.age
+		 
+Field age = personClass.getDeclaredField("age");
+        age.setAccessible(true); //忽略访问权限的安全检查，暴力反射获取private修饰的成员变量
+        Person p = new Person("sam",21);
+        System.out.println(age.get(p)); //21
+		
+//Class对象获取构造方法
+Constructor<Person> constructor = personClass.getConstructor(String.class, int.class);
+        System.out.println(constructor); //public domain.Person(java.lang.String,int)
+		Person cass = constructor.newInstance("cass", 12);
+
+//Class对象获取成员方法 invoke
+
+//case 简单框架 可以创建任意类对象，执行任意方法 配置文件+反射
+//pro.properties 文件 (使程序的拓展性更强)
+ClassName=domain.Person
+methodName=sayHello
+
+//ReflectTest
+public class ReflectTest {
+    public static void main(String[] args) throws Exception {
+        Properties pro = new Properties();
+        ClassLoader classLoader = ReflectTest.class.getClassLoader();
+        //用classLoader得到资源的字节码
+        InputStream is = classLoader.getResourceAsStream("pro.properties");
+        pro.load(is);
+
+        //获取配置文件中定义的属性
+        String className = pro.getProperty("ClassName");
+        String methodName = pro.getProperty("methodName");
+
+        //加载进内存
+        Class cls = Class.forName(className);
+        
+        //创建对象
+        Object obj = cls.newInstance();
+        //获取方法对象
+        Method method = cls.getMethod(methodName);
+        //use method
+        method.invoke(obj);
+    }
+}
+
+//注解 解释给程序，e.g., @Override
+//生成doc文档
+/**
+ * @version 1.0
+ * @author dts
+ * @since 1.5
+ */
+public class Test {
+    /**
+     *
+     * @param a int
+     * @param b int
+     * @return sum number
+     */
+    public int add(int a, int b) {
+        return a+b;
+    }
+}
+//Java预定义注解
+@Override //检测被标注的方法是否继承自父类或接口
+@Deprecated //该注解标识的内容已过时
+@SuppressWarnings //压制警告
+@SuppressWarnings("all") //压制所有警告
+
+datadir="C:/ProgramData/MySQL/MySQL Server 5.5/Data/

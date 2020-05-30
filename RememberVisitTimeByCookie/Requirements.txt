@@ -1,0 +1,17 @@
+Case: Remember the last visit time
+Requirements:
+1. Visit a Servlet. If it is the first visit, you will be prompted: Hello, welcome for your first visit.
+2. If it is not the first visit, you will be prompted: Welcome back, your last visit time is: display time string
+
+Analysis:
+1. Can be done with cookies
+2. The Servlet in the server determines whether there is a cookie named lastTime
+1. Yes: This is not the first visit
+1. Response data: Welcome back, your last visit time was: June 10, 2018 11:50:20
+2. Write back cookies: lastTime = 11: 50: 01 on June 10, 2018
+2. No: This is the first visit
+1. Response data: Hello, welcome for your first visit
+2. Write back cookies: Welcome back, your last visit time is ****
+
+Advanced:
+Implement this function using jsp

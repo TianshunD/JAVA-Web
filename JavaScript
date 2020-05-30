@@ -1,0 +1,209 @@
+## JavaScript：
+* 概念：	一门客户端脚本语言
+	* 运行在客户端浏览器中的。每一个浏览器都有JavaScript的解析引擎
+	* 脚本语言：不需要编译，直接就可以被浏览器解析执行了
+
+* 功能：
+	* 可以来增强用户和html页面的交互过程，可以来控制html元素，让页面有一些动态的效果，增强用户的体验。
+	
+ECMAScript+DOM+BOM
+
+ECMAScript
+<script>可以定义多个，位置影响执行顺序
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script>
+        alert("hello world");
+    </script>
+    <script src="a.js"></script>
+</head>
+<body>
+
+</body>
+</html>
+
+1. 原始数据类型(基本数据类型)：
+	1. number：数字。 整数/小数/NaN(not a number 一个不是数字的数字类型)
+	2. string：字符串。 字符串  "abc" "a" 'abc'
+	3. boolean: true和false
+	4. null：一个对象为空的占位符
+	5. undefined：未定义。如果一个变量没有给初始化值，则会被默认赋值为undefined
+	
+var num = 3;
+var str = "cass";
+var ud = undefined;
+
+
+document.write(num1 + "<br>" + num2 + "<br>" + num3); //3 cass undefined
+document.write(typeof(num1)); //number    typeof check variable type
+
+var obj = null;
+document.write(typeof(obj)); //object   bug till now
+
+//在JS中，如果运算数不是运算符所要求的类型，那么js引擎会自动的将运算数进行类型转换
+var obj2 = +"123"; //+号可以进行字符串按字面值转换
+document.write(typeof(obj2)); //number
+var obj3 = +"ABC"; 
+document.write(typeof(obj3)); //NaN
+
+
+比较运算符
+	> < >= <= == ===(全等于)
+	* 比较方式
+	  1. 类型相同：直接比较
+		  * 字符串：按照字典顺序比较。按位逐一比较，直到得出大小为止。
+	  2. 类型不同：先进行类型转换，再比较
+		  * ===：全等于。在比较之前，先判断类型，如果类型不一样，则直接返回false
+document.write("abc" > "aaa"); //true
+document.write(123 == "123"); //true
+document.write(123 === "123"); //false
+
+
+逻辑运算符
+	&& || !
+	* 其他类型转boolean：
+	   1. number：0或NaN为假，其他为真
+	   2. string：除了空字符串("")，其他都是true
+	   3. null&undefined:都是false
+	   4. 对象：所有对象都为true
+var flag = 3;
+document.write(!flag); //false
+document.write(!!flag); //true
+document.write(!str1); //false
+var date = new Date();
+document.write(!date + "<br>" + date); //false    Sat Apr 25 2020 17:12:13 GMT-0500 (Central Daylight Time) 
+if (obj) { //判断非null非空
+}
+
+var c = a > b ? a: b;
+
+JS中swith可以接收任意变量
+
+var sum = 0;
+for(var i = 1; i <= 100; i++) {
+	sum += i;
+}
+document.write(sum);
+
+
+//9*9
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>9*9</title>
+    <style>
+        td {
+            border: 1px solid;
+        }
+    </style>
+    <script>
+        document.write("<table align='center'>");
+        var sum = 0;
+        for(var i = 1; i <= 9; i++) {
+            document.write("<tr>");
+            for (var j = 1; j <= i; j++) {
+                document.write("<td>");
+                document.write(i + "*" + j + "=" + i*j + "&nbsp;");
+                document.write("</td>");
+            }
+            document.write("</tr>");
+        }
+        document.write("</table>");
+
+    </script>
+</head>
+<body>
+
+</body>
+</html>
+
+//Function is an obj 定义名称相同的方法，会覆盖
+//方法调用对于参数传递过于灵活 少传undefined 多传
+function func(a, b) {
+	alert(a+b);
+}
+
+func(3,4);
+func.length; //2 参数个数
+
+func = function(a,b) {
+	alert(a-b);
+}
+
+function add() {
+            sum = 0;
+            for (i = 0; i < arguments.length; i++) { //内置arguments数组
+                sum += arguments[i];
+            }
+            alert(sum);
+        }
+
+        add(3,4);
+		
+//Array JS数组长度类型均可变
+var arr1 = new Array(1, 2, 3, 5);
+var arr2 = new Array(5); //Array length = 5
+var arr3 = [1, 2, 3, 4];
+var arr4 = new Array(); //Empty array
+document.write(arr1)； //1,2,3,5 
+document.write(arr1.join("-")); //1-2-3-5    join(seperator) 
+arr1.push(11); //add var
+
+//Date
+date = new Date();
+document.write(date.getTime());
+
+//Math
+Math.pow(2,3); //8
+Math.random(); //0.13882859787369084 返回[0,1)之间随机数
+Math.round(3.11); //3 四舍五入
+Math.ceil(3.11)； //4
+Math.floor(3.11); //3
+Math.ceil(100 * Math.random()); //0-100
+
+//RegExp 正则表达式，定义字符串组成规则
+1. 正则表达式：定义字符串的组成规则。
+	1. 单个字符:[]
+		如： [a] [ab] [a-zA-Z0-9_]
+		* 特殊符号代表特殊含义的单个字符:
+			\d:单个数字字符 [0-9]
+			\w:单个单词字符[a-z A-Z 0-9_]
+	2. 量词符号：
+		?：表示出现0次或1次
+		*：表示出现0次或多次
+		+：出现1次或多次
+		{m,n}:表示 m<= 数量 <= n
+			* m如果缺省： {,n}:最多n次
+			* n如果缺省：{m,} 最少m次
+	3. 开始结束符号
+		* ^:开始
+		* $:结束
+2. 正则对象：
+	1. 创建
+		1. var reg = new RegExp("正则表达式");
+		2. var reg = /正则表达式/;
+	2. 方法	
+		1. test(参数):验证指定的字符串是否符合正则定义的规范	
+
+var reg = new RegExp("^\\w{6,12}$");
+var reg2= /^\w{6,12}$/;
+var username = "username";
+document.write(reg.test(username)); //true
+
+//Global
+str = "中文";
+document.write(encodeURI(str)); //%E4%B8%AD%E6%96%87  转码，转换为16进制编码
+str2 = "%E4%B8%AD%E6%96%87";
+document.write(decodeURI(str2)); //中文  解码
+encodeURIComponent():url编码,编码的字符更多
+decodeURIComponent():url解码
+
+document.write(parseInt("123str2")); //123  转换为number直至非数字部分停止
+isNaN():判断一个值是否是NaN
+* NaN六亲不认，连自己都不认。NaN参与的==比较全部问false
+eval(): JavaScript 字符串，并把它作为脚本代码来执
+eval("alert('cass')");

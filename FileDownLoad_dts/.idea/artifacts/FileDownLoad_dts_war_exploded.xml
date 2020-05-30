@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact type="exploded-war" name="FileDownLoad_dts:war exploded">
+    <output-path>$PROJECT_DIR$/out/artifacts/FileDownLoad_dts_war_exploded</output-path>
+    <root id="root">
+      <element id="javaee-facet-resources" facet="FileDownLoad_dts/web/Web" />
+      <element id="directory" name="WEB-INF">
+        <element id="directory" name="classes">
+          <element id="module-output" name="FileDownLoad_dts" />
+        </element>
+      </element>
+    </root>
+  </artifact>
+</component>

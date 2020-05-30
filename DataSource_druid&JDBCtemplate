@@ -1,0 +1,229 @@
+/*
+数据库连接池
+当系统初始化好后，容器被创建，容器中会申请一些连接对象，当用户来访问数据库时，从容器中获取连接对象，
+用户访问完之后，会将连接对象归还给容器。
+c3p0 + druid(阿里)
+*/
+
+//c3p0
+//导入jar包 (两个) c3p0-0.9.5.2.jar mchange-commons-java-0.2.12.jar
+//Configuration: c3p0.properties 或者 c3p0-config.xml
+
+//数据库连接池对象
+DataSource ds = new ComboPooledDataSource(); //default-config
+DataSource ds = new ComboPooledDataSource("otherc3p0"); //named-config
+Connection conn = ds.getConnection();
+conn.close(); //return conn to Pool
+
+//druid
+public static void main(String[] args) throws Exception {
+        ClassLoader classLoader = Druid_dts.class.getClassLoader();
+        InputStream fis = classLoader.getResourceAsStream("druid.properties");
+
+        Properties pro = new Properties();
+        pro.load(fis);
+        
+        DataSource ds = DruidDataSourceFactory.createDataSource(pro);
+        Connection conn = ds.getConnection();
+        System.out.println(conn);
+    }
+	
+
+/**
+ * Druid连接池工具类
+ */
+public class JDBCUtils {
+    private static DataSource ds;
+
+    static {
+        Properties pro = new Properties();
+        try {
+            pro.load(JDBCUtils.class.getClassLoader().getResourceAsStream("druid.properties"));
+            ds = DruidDataSourceFactory.createDataSource(pro);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static DataSource getDataSource() {
+        return ds;
+    }
+
+    public static Connection getConnection() throws SQLException {
+        return ds.getConnection();
+    }
+
+    //return resource
+    public static void close(Connection conn, Statement sta) {
+        if (conn!=null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (sta!=null) {
+            try {
+                sta.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static void close(Connection conn, Statement sta, ResultSet res) {
+        close(conn,sta);
+        if (res!=null) {
+            try {
+                res.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
+//use JDBCUtils to update table dept
+public class DruidUtils {
+    public static void main(String[] args) {
+        Connection conn = null;
+        PreparedStatement pre = null;
+
+        try {
+            conn = JDBCUtils.getConnection();
+            String sql = "insert into dept values (null, ?)";
+
+            pre = conn.prepareStatement(sql);
+            pre.setString(1,"cass");
+            System.out.println(pre.executeUpdate());
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            JDBCUtils.close(conn,pre);
+        }
+    }
+}
+
+//Spring JDBC
+public class JDBCTemp {
+    public static void main(String[] args) {
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(JDBCUtils.getDataSource());
+
+        String sql = "update dept set name = ? where id = ?";
+        System.out.println(jdbcTemplate.update(sql, "dean",5));;
+    }
+}
+
+* update():执行DML语句。增、删、改语句
+* queryForMap():查询结果将结果集封装为map集合，将列名作为key，将值作为value 将这条记录封装为一个map集合
+	* 注意：这个方法查询的结果集长度只能是1
+* queryForList():查询结果将结果集封装为list集合
+	* 注意：将每一条记录封装为一个Map集合，再将Map集合装载到List集合中
+* query():查询结果，将结果封装为JavaBean对象
+	* query的参数：RowMapper
+		* 一般我们使用BeanPropertyRowMapper实现类。可以完成数据到JavaBean的自动封装
+		* new BeanPropertyRowMapper<类型>(类型.class)
+* queryForObject：查询结果，将结果封装为对象
+	* 一般用于聚合函数的查询
+	
+public class JDBC_case_dts {
+
+    private JdbcTemplate template = new JdbcTemplate(JDBCUtils.getDataSource());
+
+    @Test
+    public void test1(){
+        //DML_update
+        String sql = "update emp set salary = ? where id = ?";
+        int count = template.update(sql,1000,1);
+        System.out.println(count);
+    }
+
+    @Test
+    public void test2() {
+        //DML_insert
+        String sql = "insert into emp (id, name) values (?,?)";
+        System.out.println(template.update(sql,9,"lucy"));;
+    }
+
+    @Test
+    public void test3(){
+        //DML_delete
+        String sql = "delete from emp where id = ?";
+        int count = template.update(sql, 5);
+        System.out.println(count);
+    }
+	
+	@Test
+	public void test4(){
+		String sql = "select * from emp where id = ?";
+		Map<String, Object> map = template.queryForMap(sql, 1); //expected size is 1!!!
+		System.out.println(map);
+	}
+	
+	@Test
+	public void test5(){
+		String sql = "select * from emp";
+		List<Map<String, Object>> list = template.queryForList(sql);
+
+		for (Map<String, Object> stringObjectMap : list) {
+			System.out.println(stringObjectMap);
+		}
+	}
+	
+	@Test
+	public void test6(){
+		String sql = "select * from emp";
+		List<Emp> list = template.query(sql, new RowMapper<Emp>() {
+
+			@Override
+			public Emp mapRow(ResultSet rs, int i) throws SQLException {
+				Emp emp = new Emp();
+				int id = rs.getInt("id");
+				String ename = rs.getString("ename");
+				int job_id = rs.getInt("job_id");
+				int mgr = rs.getInt("mgr");
+				Date joindate = rs.getDate("joindate");
+				double salary = rs.getDouble("salary");
+				double bonus = rs.getDouble("bonus");
+				int dept_id = rs.getInt("dept_id");
+
+				emp.setId(id);
+				emp.setEname(ename);
+				emp.setJob_id(job_id);
+				emp.setMgr(mgr);
+				emp.setJoindate(joindate);
+				emp.setSalary(salary);
+				emp.setBonus(bonus);
+				emp.setDept_id(dept_id);
+
+				return emp;
+			}
+		});
+
+
+		for (Emp emp : list) {
+			System.out.println(emp);
+		}
+	}
+	
+	@Test
+	public void test6_2(){
+		String sql = "select * from emp";
+		List<Emp> list = template.query(sql, new BeanPropertyRowMapper<Emp>(Emp.class)); //Emp中定义的基本数据类型不能被null赋值，可以定义为封装类
+		for (Emp emp : list) {
+			System.out.println(emp);
+		}
+	}
+	
+	@Test
+	public void test7(){
+		String sql = "select count(id) from emp";
+		Long total = template.queryForObject(sql, Long.class);
+		System.out.println(total);
+	}
+
+
+}

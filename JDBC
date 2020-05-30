@@ -1,0 +1,546 @@
+/*
+JDBC Java DataBase Connectivity 
+官方（sun公司）定义的一套操作所有关系型数据库的规则，即接口。各个数据库厂商去实现这套接口，提供数据库驱动jar包。
+使用这套接口（JDBC）编程，真正执行的代码是驱动jar包中的实现类。
+*/
+//导入jar包 mysql-connector-java-5.1.37-bin.jar  libs -> paste -> add as Library
+
+//Simple example
+public class JDBC_dts1 {
+    public static void main(String[] args) throws Exception {
+        Class.forName("com.mysql.jdbc.Driver"); ////注册驱动(驱动加载进内存)，mysql5之后的驱动jar包可以省略注册驱动的步骤
+        Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/db_dts", "root", "root");
+        
+		String sql = "update account set balance = 300 where id = 1";
+        Statement sta = conn.createStatement();
+        
+		int count = sta.executeUpdate(sql);
+        System.out.println(count); //1
+        
+		sta.close();
+        conn.close();
+    }
+}
+
+//DriverManager
+static { //源码中有静态代码块，加载时自动执行registerDriver(new Driver())
+	try {
+		java.sql.DriverManager.registerDriver(new Driver());
+	} catch (SQLException E) {
+		throw new RuntimeException("Can't register driver!");
+	}
+}
+//获取数据库连接
+static Connection getConnection(String url, String user, String password)
+Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/db_dts", "root", "root");
+Connection conn = DriverManager.getConnection("jdbc:mysql:///db_dts", "root", "root"); //local 可以简写
+
+//Connection
+Statement createStatement() //执行静态SQL
+PreparedStatement prepareStatement(String sql) //执行动态SQL
+//事务管理
+setAutoCommit(boolean autoCommit) //false，阻止自动提交，开启事务
+commit()
+rollback()
+
+//Statement
+int executeUpdate(String sql) //执行DML（insert、update、delete）语句、DDL(create，alter、drop)语句,return > 0 successful
+ResultSet executeQuery(String sql) //执行DQL（select)语句
+
+//JDBC DML
+public class JDBC_dts2 {
+    public static void main(String[] args) {
+        Connection conn = null;
+        Statement sta = null;
+
+        try {
+            Class.forName("com.mysql.jdbc.Driver"); //注册驱动
+            String sql = "insert into account values(null, 'cass', 3000)"; //primary key set autoincrement, so null
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/db_dts", "root", "root"); //获取连接
+            sta = conn.createStatement(); //执行对象
+            int count = sta.executeUpdate(sql);//执行SQL
+            System.out.println(count);
+            if (count > 0) {
+                System.out.println("Success!");
+            } else System.out.println("Fail!");
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            //释放资源
+            if (sta!=null) {
+                try {
+                    sta.close(); //如果直接null调用方法，会有空指针异常
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (conn!=null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+}
+
+String sql = "update account set balance = 5000 where id = 3";
+int count = sta.executeUpdate(sql); //1
+
+String sql = "delete from account where id = 3";
+int count = sta.executeUpdate(sql); //1
+
+String sql = "create table stu2(name varchar(10), age int)"; 
+int count = sta.executeUpdate(sql); //0
+
+//ResultSet 
+boolean resSet.next()
+int getInt() ,	String getString()
+public class JDBC_dts4 {
+    public static void main(String[] args) {
+        Connection conn = null;
+        Statement sta = null;
+        ResultSet resSet = null;
+
+        try {
+            Class.forName("com.mysql.jdbc.Driver"); //注册驱动
+            String sql = "select * from account";
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/db_dts", "root", "root"); //获取连接
+            sta = conn.createStatement(); //执行对象
+            resSet = sta.executeQuery(sql);
+
+
+            while (resSet.next()) { //mysql starts from dummy, 类似hasNext + next
+                int index = resSet.getInt(1); //mysql索引从1开始
+                String name = resSet.getString(2);
+                double balance = resSet.getDouble(3);
+                System.out.println("Record" + index +  ": " + "name: " + name + ", balance: " + balance);
+            }
+
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            //释放资源
+            if (sta!=null) {
+                try {
+                    sta.close(); //如果直接null调用方法，会有空指针异常
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (conn!=null) {
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if (resSet!=null) {
+                try {
+                    resSet.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+}
+
+//遍历并封装成对象
+public static void main(String[] args) {
+        List<Emp> list = new JDBCDemo8().findAll();
+        System.out.println(list);
+        System.out.println(list.size());
+    }
+    
+    public List<Emp> findAll(){
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        List<Emp> list = null;
+        try {
+            
+            Class.forName("com.mysql.jdbc.Driver");
+            
+            conn = DriverManager.getConnection("jdbc:mysql:///db_dts", "root", "root");
+            
+            String sql = "select * from emp";
+            
+            stmt = conn.createStatement();
+            
+            rs = stmt.executeQuery(sql);
+            
+            Emp emp = null;
+            list = new ArrayList<Emp>();
+            while(rs.next()){
+                
+                int id = rs.getInt("id");
+                String ename = rs.getString("ename");
+                int job_id = rs.getInt("job_id");
+                int mgr = rs.getInt("mgr");
+                Date joindate = rs.getDate("joindate");
+                double salary = rs.getDouble("salary");
+                double bonus = rs.getDouble("bonus");
+                int dept_id = rs.getInt("dept_id");
+                
+                emp = new Emp();
+                emp.setId(id);
+                emp.setEname(ename);
+                emp.setJob_id(job_id);
+                emp.setMgr(mgr);
+                emp.setJoindate(joindate);
+                emp.setSalary(salary);
+                emp.setBonus(bonus);
+                emp.setDept_id(dept_id);
+
+                
+                list.add(emp);
+            }
+
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }finally {
+            if(rs != null){
+                try {
+                    rs.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if(stmt != null){
+                try {
+                    stmt.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            if(conn != null){
+                try {
+                    conn.close();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return list;
+    }
+
+//================================================================	
+//JDBCUtils
+//jdbc.properties
+url=jdbc:mysql:///db3
+user=root
+password=root
+driver=com.mysql.jdbc.Driver
+
+
+
+
+public class JDBCUtils {
+    /**
+     * 文件读取，仅一次
+     */
+    private static String url;
+    private static String user;
+    private static String password;
+    private static String driver;
+    static {
+        Properties pro = new Properties();
+        try {
+            //获取src目录下文件：绝对路径或者ClassLoader
+			Properties pro = new Properties();
+            ClassLoader classLoader = JDBCUtils.class.getClassLoader();
+            URL res  = classLoader.getResource("jdbc.properties");
+            String path = res.getPath();
+
+            pro.load(new FileReader(path));
+            //pro.load(new FileReader("C:\\Users\\10492\\IdeaProjects" +
+                    //"\\JDBC_dts_01\\dts01_jdbc\\src\\jdbc.properties"));
+
+            url = pro.getProperty("url");
+            user = pro.getProperty("user");
+            password = pro.getProperty("password");
+            driver = pro.getProperty("driver");
+
+            Class.forName(driver); //注册驱动
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    /**
+     * 获取连接
+     * @return 连接对象
+     */
+    public static Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(url, user, password);
+    }
+
+    /**
+     * 释放资源
+     */
+    public static void close(Statement sta, Connection conn) {
+        if (sta!=null) {
+            try {
+                sta.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (conn!=null) {
+            try {
+                conn.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 重载
+     * @param sta
+     * @param conn
+     * @param res
+     */
+    public static void close(Statement sta, Connection conn, ResultSet res) {
+        close(sta, conn);
+
+        if (res!=null) {
+            try {
+                res.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
+public class JDBC_dts5 {
+    public static void main(String[] args) {
+        List<Emp> list = new JDBC_dts5().findAllV2();
+        System.out.println(list);
+        System.out.println(list.size());
+    }
+
+    public List<Emp> findAllV2(){
+        Connection conn = null;
+        Statement stmt = null;
+        ResultSet rs = null;
+        List<Emp> list = null;
+        try {
+            conn = JDBCUtils.getConnection();
+
+            String sql = "select * from emp";
+            stmt = conn.createStatement();
+
+            rs = stmt.executeQuery(sql);
+
+            Emp emp = null;
+            list = new ArrayList<Emp>();
+
+            while(rs.next()){
+                int id = rs.getInt("id");
+                String name = rs.getString("name");
+                String gender = rs.getString("gender");
+                double salary = rs.getDouble("salary");
+                Date join_date = rs.getDate("join_date");
+                int dept_id = rs.getInt("dept_id");
+
+                emp = new Emp(id,name,gender,salary,join_date,dept_id);
+                list.add(emp);
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }finally {
+            JDBCUtils.close(stmt,conn,rs);
+        }
+        return list;
+    }
+}
+
+//Case User login 
+/*
+CREATE DATABASE db4;
+
+USE db4;
+
+CREATE TABLE USER (
+id INT PRIMARY KEY AUTO_INCREMENT,
+username VARCHAR(32),
+PASSWORD VARCHAR(32)
+);
+
+SELECT * FROM USER;
+
+INSERT INTO USER VALUES (NULL, 'cass', '123');
+INSERT INTO USER VALUES (NULL, 'dean', '456');
+INSERT INTO USER VALUES (NULL, 'dts', '666');
+*/
+public class JDBC_log_dts {
+    public static void main(String[] args) {
+        Scanner sca = new Scanner(System.in);
+        System.out.println("pls type in your username:");
+        String username = sca.next();
+        System.out.println("pls type in your password:");
+        String password = sca.next();
+        if (new JDBC_log_dts().login(username,password)) {
+            System.out.println("Welcome!");
+        } else {
+            System.out.println("Username or password is wrong!");
+        }
+    }
+
+    //login test
+    public boolean login(String userName, String password) {
+        if (userName == null || password == null) {
+            return false;
+        }
+        Connection conn = null;
+        Statement sta = null;
+        ResultSet rs = null;
+
+        try {
+            conn = JDBCUtils.getConnection();
+            sta = conn.createStatement();
+
+            //Warning!SQL注入
+			String sql = "select * from user where username = '"+ userName + "' and password = '" + password + "'";
+            rs = sta.executeQuery(sql);
+
+            //判断是否成功
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            JDBCUtils.close(sta, conn, rs);
+        }
+
+        return false;
+    }
+}
+
+/*
+Prepared Statement
+SQL注入
+username:fsdfdsf  password:a' or 'a' = 'a 登录成功！
+select * from user where username = 'a' or 'a' = 'a'; ('a' = 'a'恒成立) 会打印所有记录
+Prepared Statement 
+select * from user where username = ? and password = ?; 给?赋值： setXxx(参数1,参数2)
+*/
+public class JDBC_preStatement {
+    public static void main(String[] args) {
+        Scanner sca = new Scanner(System.in);
+        System.out.println("pls type in your username:");
+        String username = sca.next();
+        System.out.println("pls type in your password:");
+        String password = sca.next();
+        if (new JDBC_preStatement().loginV2(username,password)) {
+            System.out.println("Welcome!");
+        } else {
+            System.out.println("Username or password is wrong!");
+        }
+    }
+
+    //login test
+    public boolean loginV2(String userName, String password) {
+        if (userName == null || password == null) {
+            return false;
+        }
+        Connection conn = null;
+        ResultSet rs = null;
+        PreparedStatement pst = null;
+
+        try {
+            conn = JDBCUtils.getConnection();
+
+            String sql = "select * from user where username = ? and password = ?";
+            pst = conn.prepareStatement(sql);
+
+            pst.setString(1,userName);
+            pst.setString(2,password);
+
+            rs = pst.executeQuery();
+
+            //判断是否成功
+            return rs.next();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            JDBCUtils.close(pst, conn, rs);
+        }
+
+        return false;
+    }
+}
+
+/*JDBC事务管理
+使用Connection对象来管理事务
+	* 开启事务：setAutoCommit(boolean autoCommit) ：调用该方法设置参数为false，即开启事务
+	* 在执行sql之前开启事务
+	* 提交事务：commit() 
+	* 当所有sql都执行完提交事务
+	* 回滚事务：rollback() 
+	* 在catch中回滚事务
+*/
+public class JDBCTransaction {
+    public static void main(String[] args) {
+        Connection conn = null;
+        PreparedStatement pre1 = null;
+        PreparedStatement pre2 = null;
+
+        try {
+            conn = JDBCUtils.getConnection();
+            conn.setAutoCommit(false); //start transaction
+
+            String sql1 = "update account set balance = balance-? where name = ?";
+            String sql2 = "update account set balance = balance+? where name = ?";
+            pre1 = conn.prepareStatement(sql1);
+            pre2 = conn.prepareStatement(sql2);
+
+            pre1.setDouble(1,300);
+            pre1.setString(2,"lisi");
+
+            pre2.setDouble(1,300);
+            pre2.setString(2,"cass");
+
+            pre1.executeUpdate();
+            pre2.executeUpdate();
+
+            conn.commit(); //commit
+
+        } catch (Exception e) {
+            try {
+                if (conn!=null){
+                    conn.rollback(); //抓到任何异常，直接回滚
+                }
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+            e.printStackTrace();
+        } finally {
+            JDBCUtils.close(pre1,conn);
+            JDBCUtils.close(pre2,null);
+        }
+    }
+}
+
+
+
+

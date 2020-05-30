@@ -1,0 +1,192 @@
+-- MySQL port3306
+-- 配置文件 my.ini
+cmd mysql -uroot -proot
+
+cmd services.msc -- 打开所有服务 MySQL running automatic
+
+-- 管理员身份运行cmd，打开关闭mysql
+cmd net start mysql
+cmd net stop mysql
+
+cmd mysql -uroot -proot -- 登录，连接本地MySQL用户
+cmd mysql -h127.0.0.1 -uroot -proot -- 通过IP连接远程用户
+cmd mysql -- host=ip --user=root --password=root
+exit -- 退出
+
+-- DDL
+mysql> SHOW DATABASES;
+mysql> CREATE DATABASE db1;
+mysql> SHOW CREATE DATABASE db1; -- view charset utf8
+mysql> CREATE DATABASE IF NOT EXISTS db1;
+mysql> CREATE DATABASE db2 CHARACTER SET gbk;
+mysql> ALTER DATABASE db1 CHARACTER SET utf8; -- 改字符集
+mysql> DROP DATABASE db1; -- 删除
+mysql> DROP DATABASE IF EXISTS db1;
+
+mysql> CREATE DATABASE db_dts;
+mysql> USE db_dts;
+mysql> SELECT DATABASE(); -- 查询当前正在使用的数据库
+
+-- DML
+mysql> SHOW TABLES;
+mysql> DESC host; -- 表结构查询
+
+CREATE TABLE student (
+	id int,
+	name varchar(20),
+	age int,
+	score double(4,1),
+	birthday date,
+	insert_time timestamp
+);
+mysql> CREATE TABLE stu LIKE student; -- 复制表
+mysql> DROP TABLE IF EXISTS student; -- 删除表
+
+mysql> ALTER TABLE student RENAME TO stu;
+mysql> ALTER TABLE stu CHARACTER SET utf8;
+mysql> ALTER TABLE stu ADD gender varchar(5);
+mysql> DESC stu;
+mysql> ALTER TABLE stu CHANGE gender sex varchar(10);
+mysql> ALTER TABLE stu MODIFY sex varchar(12);
+mysql> ALTER TABLE stu DROP sex;
+
+-- SQLyog 图形化操作界面
+
+-- DML
+INSERT INTO stu VALUES (2, 'dean', 12, 80.5, '2020-04-18', '2020-04-18 14:53:06');
+INSERT INTO stu (id, NAME, age, score) VALUES (1, 'cass', 12, 80.5);
+DELETE FROM stu WHERE id=1;
+DELETE FROM stu; -- 删除所有，效率慢，逐行删除
+TRUNCATE TABLE stu; -- 删除表，再创建一个同样的空表，效率高
+UPDATE stu SET age=20 WHERE id=2;
+
+-- DQL
+SELECT DISTINCT age FROM stu;
+SELECT math+english FROM stu2; -- 有null参与的运算，计算结果都为null
+SELECT math+IFNULL(english,0) FROM stu2; -- to avoid null value
+SELECT math+IFNULL(english,0) AS SUM FROM stu2;
+SELECT NAME 姓名 FROM stu;
+SELECT * FROM stu WHERE age > 10;
+SELECT * FROM stu WHERE age <> 10; -- equals to !=
+SELECT * FROM stu WHERE age BETWEEN 10 AND 20; -- [20, 30]
+SELECT * FROM stu WHERE age = 10 OR 20 OR 30;
+SELECT * FROM stu WHERE age IN (10,20,30);
+SELECT * FROM stu WHERE age IS NULL; -- null不能用=判断
+SELECT * FROM stu WHERE age IS NOT NULL;
+SELECT * FROM stu WHERE NAME LIKE '_d%'; -- 查询第二位为d，模糊查询 _任意单个字符 %任意多个字符
+SELECT * FROM stu WHERE NAME LIKE '%d%'; -- contains d
+SELECT * FROM stu ORDER BY age ASC;
+SELECT * FROM stu ORDER BY age ASC, english ASC; -- age asc, then eng asc
+-- 聚合函数 count/max/min/sum/avg
+SELECT COUNT(NAME) FROM stu; -- 聚合函数计算排除null
+SELECT COUNT(IFNULL(NAME,0)) FROM stu;
+SELECT COUNT(*) FROM stu;
+SELECT MAX(age) FROM stu;
+SELECT MIN(age) FROM stu;
+SELECT SUM(age) FROM stu;
+SELECT AVG(age) FROM stu; 
+-- 分组查询 分组之后查询的字段只能是分组字段或者聚合函数,否则无意义
+SELECT AVG(age),COUNT(id) total,sex FROM stu WHERE age > 10 GROUP BY sex HAVING total > 2; -- where分组前限定（不跟聚合函数） having分组后限定
+-- 分页查询 LIMIT 开始索引(index starts from 0)，record个数 
+SELECT * FROM stu LIMIT 0,3; -- 第一页3个
+SELECT * FROM stu LIMIT 3,3; -- 第二页3个 (n-1)*3
+
+-- 约束
+CREATE TABLE stu(
+				id INT,
+				NAME VARCHAR(20) NOT NULL -- name非空
+			);
+ALTER TABLE stu MODIFY NAME VARCHAR(20) NOT NULL;
+ALTER TABLE stu MODIFY NAME VARCHAR(20); -- 删除非空约束
+CREATE TABLE stu(
+				id INT,
+				phone_number VARCHAR(20) UNIQUE -- 唯一约束,mysql中，唯一约束限定的列的值可以有多个null
+			
+			);
+ALTER TABLE stu DROP INDEX phone_number; -- 删除唯一约束
+ALTER TABLE stu MODIFY phone_number VARCHAR(20) UNIQUE; --add唯一约束
+
+-- 主键约束：primary key
+CREATE TABLE stu(
+				id INT PRIMARY KEY,-- 给id添加主键约束
+				NAME VARCHAR(20)
+			);
+ALTER TABLE stu DROP PRIMARY KEY; -- 删除主键
+ALTER TABLE stu MODIFY id INT PRIMARY KEY; -- 添加主键
+
+-- 自动增长
+CREATE TABLE stu(
+				id INT PRIMARY KEY AUTO_INCREMENT,-- 给id添加主键约束
+				NAME VARCHAR(20)
+			);
+ALTER TABLE stu MODIFY id INT;
+ALTER TABLE stu MODIFY id INT AUTO_INCREMENT;
+
+-- 外键
+CONSTRAINT stu_fk FOREIGN KEY (NAME) REFERENCES student(NAME)
+ALTER TABLE stu DROP FOREIGN KEY stu_fk;
+ALTER TABLE stu ADD CONSTRAINT CONSTRAINT stu_fk FOREIGN KEY (NAME) REFERENCES student(NAME);
+
+-- 级联操作 修改属性，关联信息自动更新
+ALTER TABLE stu ADD CONSTRAINT stu_fk 
+						FOREIGN KEY (NAME) REFERENCES student(NAME) ON UPDATE CASCADE ON DELETE CASCADE; -- 级联更新：ON UPDATE CASCADE 级联删除：ON DELETE CASCADE 
+						
+-- 1 to 1/1 to N/N to M Relationships
+
+-- 数据库备份还原
+mysqldump -uroot -proot db_dts > d://a.sql -- 备份
+CREATE DATABASE db1; --还原
+USE db1;
+source d://a.sql
+
+-- 多表查询 内连接
+SELECT * FROM emp,dept WHERE emp.`dept_id` = dept.`id`;
+-- 企业级书写
+SELECT 
+	t1.name, -- 员工表的姓名
+	t1.gender,-- 员工表的性别
+	t2.name -- 部门表的名称
+FROM
+	emp t1,
+	dept t2
+WHERE 
+	t1.`dept_id` = t2.`id`; -- 隐式内连接
+SELECT * FROM emp INNER JOIN dept ON emp.`dept_id` = dept.`id`;	-- 显式内连接
+SELECT * FROM emp JOIN dept ON emp.`dept_id` = dept.`id`; -- 显式内连接	
+
+-- 多表查询 外连接
+SELECT 	
+	t1.*,t2.`name` 
+FROM 
+	emp t1 
+LEFT JOIN 
+	dept t2 
+ON 
+	t1.`dept_id` = t2.`id`; -- 左外连接，查询左表所有信息以及与右表交集
+
+-- 子查询
+SELECT * FROM emp WHERE emp.`salary` = (SELECT MAX(salary) FROM emp);
+SELECT * FROM emp WHERE dept_id IN (SELECT id FROM dept WHERE NAME = '财务部' OR NAME = '市场部');
+SELECT 
+	t1.`id`,t1.`dname`,t1.`loc` , t2.total
+FROM 
+	dept t1,
+	(SELECT
+		dept_id,COUNT(id) total
+	FROM 
+		emp
+	GROUP BY 
+		dept_id) t2
+WHERE 
+	t1.`id` = t2.dept_id;
+SELECT 
+	t1.ename,
+	t1.mgr,
+	t2.`id`,
+	t2.`ename`
+FROM 
+	emp t1
+LEFT JOIN 
+	emp t2
+ON 
+	t1.`mgr` = t2.`id`;

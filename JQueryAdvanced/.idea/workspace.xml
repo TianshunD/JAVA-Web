@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="ea8c1ee3-86be-42c1-86c5-098472f116b3" name="Default Changelist" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ProjectId" id="1bpJvS60OyQeUf59GLJMXNp1RgO" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showExcludedFiles" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">
+    <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="aspect.path.notification.shown" value="true" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/img" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\10492\IdeaProjects\JQueryAdvanced\img" />
+      <recent name="C:\Users\10492\IdeaProjects\JQueryAdvanced\05-jQuery的插件" />
+      <recent name="C:\Users\10492\IdeaProjects\JQueryAdvanced\04-jQuery综合案例" />
+      <recent name="C:\Users\10492\IdeaProjects\JQueryAdvanced" />
+    </key>
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="ea8c1ee3-86be-42c1-86c5-098472f116b3" name="Default Changelist" comment="" />
+      <created>1589323331222</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1589323331222</updated>
+      <workItem from="1589323334531" duration="4489000" />
+      <workItem from="1589388478263" duration="8524000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="1" />
+  </component>
+  <component name="WindowStateProjectService">
+    <state x="293" y="225" key="new project wizard" timestamp="1589424133208">
+      <screen x="0" y="0" width="1920" height="1040" />
+    </state>
+    <state x="293" y="225" key="new project wizard/0.0.1920.1040@0.0.1920.1040" timestamp="1589424133208" />
+  </component>
+</project>
