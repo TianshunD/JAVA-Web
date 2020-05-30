@@ -1,2 +1,2 @@
 # JAVA-Web
-JAVA Enterprise Edition of web
+Web development code using java & HTML and some practice cases
