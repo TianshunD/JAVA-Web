@@ -1,0 +1,178 @@
+## AJAX
+ASynchronous JavaScript And XML	异步的JavaScript 和 XML
+1. 异步和同步：客户端和服务器端相互通信的基础上
+	* 同步：客户端必须等待服务器端的响应。在等待的期间客户端不能做其他操作。
+	* 异步：客户端不需要等待服务器端的响应。在服务器处理请求的过程中，客户端可以进行其他的操作。
+Ajax 是一种在无需重新加载整个网页的情况下，能够更新部分网页的技术。
+1.1 原生JS实现
+      function  fun() {
+        //发送异步请求
+        //1.创建核心对象
+        var xmlhttp;
+        if (window.XMLHttpRequest)
+        {// code for IE7+, Firefox, Chrome, Opera, Safari
+          xmlhttp=new XMLHttpRequest();
+        }
+        else
+        {// code for IE6, IE5
+          xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+        }
+
+        //2. 建立连接
+        /*
+            参数：
+                1. 请求方式：GET、POST
+                    * get方式，请求参数在URL后边拼接。send方法为空参
+                    * post方式，请求参数在send方法中定义
+                2. 请求的URL：
+                3. 同步或异步请求：true（异步）或 false（同步）
+
+         */
+        xmlhttp.open("GET","ajaxServlet?username=tom",true);
+
+        //3.发送请求
+        xmlhttp.send();
+
+        //4.接受并处理来自服务器的响应结果
+        //获取方式 ：xmlhttp.responseText
+        //什么时候获取？当服务器响应成功后再获取
+
+        //当xmlhttp对象的就绪状态改变时，触发事件onreadystatechange。
+        xmlhttp.onreadystatechange=function()
+        {
+          //判断readyState就绪状态是否为4，判断status响应状态码是否为200
+          if (xmlhttp.readyState==4 && xmlhttp.status==200)
+          {
+            //获取服务器的响应结果
+            var responseText = xmlhttp.responseText;
+            alert(responseText);
+          }
+        }
+      }
+	  
+	  <input type="button" value="发送异步请求" onclick="fun();">
+	  
+2. JQeury实现
+	1. $.ajax()     $.ajax({键值对});
+	function  fun() {
+        $.ajax({
+          url:"ajaxServlet", //request path
+          type:"POST", //GET/POST
+          data:{"username":"jack","age":23},
+          success:function (res_data) { //响应成功回调函数
+            alert(res_data);
+          }
+        });
+      }
+	  
+	  2. $.get()
+	  function  fun() {
+        $.get("ajaxServlet", {"username": "cass", "age": 23}, function (re_data) {
+          alert(re_data);
+        })
+      }
+	  
+	  3. $.post()
+	  $.post("ajaxServlet", {"username": "cass", "age": 23}, function (re_data) {
+          alert(re_data);
+        })
+		
+=========================================================================================
+## JSON  JavaScript Object Notation
+var person = {"name":"cass","age":23,"gender":"male"};
+var persons = {
+	persons:[{"name": "cass", "age": 23, "gender": true},
+			 {"name": "dean", "age": 24, "gender": true},
+			 {"name": "sam", "age": 25, "gender": false}]
+};
+var ps = [{"name": "cass", "age": 23, "gender": true},
+		  {"name": "dean", "age": 24, "gender": true},
+		  {"name": "sam", "age": 25, "gender": false}];
+		  
+json数据获取
+alert(person.name); //cass
+person["name"]; //cass
+alert(persons.persons[0].age); //23
+alert(ps[1].name); //dean
+
+iter
+for (var key in person) {
+            alert(key + "=" +person[key]);
+        }
+
+for (var i=0; i<ps.length; i++) {
+            for (var key in ps[i]) {
+                alert(key + "=" +ps[i][key])
+            }
+        }
+		
+## JSON JAVA对象数据转换
+1. JAVA对象转换JSON
+Person p = new Person("cass",23,"male");
+ObjectMapper mapper = new ObjectMapper();
+String json = mapper.writeValueAsString(p);
+System.out.println(json); //{"name":"cass","age":23,"gender":"male"}
+mapper.writeValue(new File("C://Users//10492//Desktop//ITCAST//json.txt"),p); //{"name":"cass","age":23,"gender":"male"}
+mapper.writeValue(new FileWriter("C:\\Users\\10492\\Desktop\\ITCAST\\bbb.txt"),p);
+
+    1.2 注解：
+	1. @JsonIgnore：排除属性。
+	2. @JsonFormat：属性值得格式化
+		* @JsonFormat(pattern = "yyyy-MM-dd")
+	Person p2 = new Person();
+	p2.setAge(12);
+	p2.setGender("male");
+	p2.setName("cass");
+	p2.setBirthday(new Date());
+	ObjectMapper mapper = new ObjectMapper();
+	String json = mapper.writeValueAsString(p2);
+	System.out.println(json); //{"name":"cass","age":12,"gender":"male","birthday":1589492875422} in ms
+	
+	S1:
+	@JsonIgnore
+    private Date birthday;
+	//{"name":"cass","age":12,"gender":"male"}
+	
+	S2:
+	@JsonFormat(pattern = "yyyy-MM-dd")
+    private Date birthday;
+	//{"name":"cass","age":12,"gender":"male","birthday":"2020-05-14"}
+	
+	1.3 List&Map List:数组 Map:对象格式一致
+	List<Person> list = new ArrayList<>();
+	Collections.addAll(list,p,p1,p2);
+
+	ObjectMapper mapper = new ObjectMapper();
+	String json = mapper.writeValueAsString(list);
+	System.out.println(json); //[{"name":"dean","age":22,"gender":"male","birthday":"2020-05-14"},{"name":"mary","age":23,"gender":"female","birthday":"2020-05-14"},{"name":"cass","age":12,"gender":"male","birthday":"2020-05-14"}]
+
+2. JSON对象转换JAVA
+readValue(json字符串数据,Class)
+String json = "{\"name\":\"cass\",\"age\":23,\"gender\":\"male\"}";
+ObjectMapper mapper = new ObjectMapper();
+Person person = mapper.readValue(json, Person.class);
+System.out.println(person); //Person{name='cass', age=23, gender='male'}
+
+//Case 检验用户名是否存在
+<script>
+	$(function () {
+		$("#username").blur(function () {
+			var username = $(this).prop("value");
+			//return data: {"userExist":true,msg:"this username has been taken"}
+			//return data: {"userExist":false,msg:"this username can be used"}
+			$.get("findUserServlet",{username:username},function (data) {
+				var span = $("#s_username");
+				span.html(data.msg);
+				if(data.userExist) {
+					span.css("color","red");
+				} else {
+					span.css("color","green");
+				}
+			},"json") //default returned data type is text, so set as json
+		});
+	})
+</script>
+
+<input type="text" id="username" name="username" placeholder="pls insert your username">
+<span id="s_username"></span>
+

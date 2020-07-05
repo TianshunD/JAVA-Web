@@ -1,0 +1,236 @@
+Servlet -- 接口
+			|
+		GenericServlet -- 抽象类
+			|
+		HttpServlet  -- 抽象类
+
+		* GenericServlet：将Servlet接口中其他的方法做了默认空实现，只将service()方法作为抽象
+		* HttpServlet：对http协议的一种封装，简化操作
+			1. 定义类继承HttpServlet
+			2. 复写doGet/doPost方法
+			
+定义多个访问路径
+@WebServlet({"/servlet3","/serv3","/s3"})
+public class Servlet3 extends HttpServlet {
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        System.out.println("do get...");
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        System.out.println("do post...");
+    }
+}
+
+1. 请求行
+	请求方式 请求url 请求协议/版本
+	GET /login.html	HTTP/1.1
+
+请求头：客户端浏览器告诉服务器一些信息
+		请求头名称: 请求头值
+		* 常见的请求头：
+			1. User-Agent：浏览器告诉服务器，我访问你使用的浏览器版本信息
+				* 可以在服务器端获取该头的信息，解决浏览器的兼容性问题
+
+			2. Referer：http://localhost/login.html
+				* 告诉服务器，我(当前请求)从哪里来？
+					* 作用：
+						1. 防盗链：
+						2. 统计工作：
+	3. 请求空行
+		空行，就是用于分割POST请求的请求头，和请求体的。
+	4. 请求体(正文)：
+		* 封装POST请求消息的请求参数的
+
+	* 字符串格式：
+		POST /login.html	HTTP/1.1
+		Host: localhost
+		User-Agent: Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:60.0) Gecko/20100101 Firefox/60.0
+		Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8
+		Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+		Accept-Encoding: gzip, deflate
+		Referer: http://localhost/login.html
+		Connection: keep-alive
+		Upgrade-Insecure-Requests: 1
+		
+2.请求体(正文)：
+	* 封装POST请求消息的请求参数的
+		username=Cass
+
+==================================================================================================		
+## Request  request对象是来获取请求消息
+1. 获取请求行数据
+* GET /day14/demo1?name=Cass HTTP/1.1
+	* 方法：
+		1. 获取请求方式 ：GET
+			* String getMethod()  
+		2. (*)获取虚拟目录：/day14   Application context
+			* String getContextPath()
+		3. 获取Servlet路径: /demo1
+			* String getServletPath()
+		4. 获取get方式请求参数：name=Cass
+			* String getQueryString()
+		5. (*)获取请求URI：/day14/demo1
+			* String getRequestURI():		/day14/demo1
+			* StringBuffer getRequestURL()  :http://localhost/day14/demo1
+
+			* URL:统一资源定位符 ： http://localhost/day14/demo1	
+			* URI：统一资源标识符 : /day14/demo1					
+		
+		6. 获取协议及版本：HTTP/1.1
+			* String getProtocol()
+
+		7. 获取客户机的IP地址：
+			* String getRemoteAddr()
+
+2. 获取请求头数据
+String getHeader(String name):通过请求头的名称获取请求头的值
+String agent = request.getHeader("user-agent"); //Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:75.0) Gecko/20100101 Firefox/75.0
+if (agent.contains("Firefox")) {
+}
+
+
+protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Enumeration<String> headerNames = request.getHeaderNames();
+        while(headerNames.hasMoreElements())  {
+            String header = request.getHeader(headerNames.nextElement());
+            System.out.println(header);
+        }
+
+    }
+	
+localhost:8080
+Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:75.0) Gecko/20100101 Firefox/75.0
+text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+en-US,en;q=0.5
+gzip, deflate
+keep-alive
+JSESSIONID=CF33D5CC9993A4754C54705E483C3D5D; Idea-28e416e4=16cc58c8-d63b-463c-ae8d-9e3bf86af0b7; JSESSIONID=CB02F70298DBB536961CA85093C441BD
+1
+
+防盗链：
+login.html
+<a href="/web02/req02">next</a>
+
+@WebServlet("/req02")
+public class Servlet02 extends HttpServlet {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+
+    }
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String referer = request.getHeader("referer"); //如果通过某一网页的超链接访问，给出该网页URL
+        System.out.println(referer); //http://localhost:8080/web02/login.html
+		
+		if (referer!=null) {
+            if(referer.contains("/web02")) {
+                response.getWriter().write("Authorized"); //authorized!
+            } else {
+                response.getWriter().write("Not authorized");
+            }
+        }
+
+    }
+}
+
+3. 获取请求体
+login.html
+<form action="/web02/req02" method="post">
+        <input type="text" placeholder="pls type your username" name="username"><br>
+        <input type="password" name="password"><br>
+        <input type="submit" value="Register">
+    </form>
+
+WebServlet("/req02")	
+protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        BufferedReader reader = request.getReader();
+        String line = null;
+        while ((line = reader.readLine())!=null) {
+            System.out.println(line); //username=cass&password=dean
+        }
+
+    }
+
+4. 其他功能：
+	1. 获取请求参数通用方式：不论get还是post请求方式都可以使用下列方法来获取请求参数
+		1. String getParameter(String name):根据参数名称获取参数值    username=cass&password=123
+		2. String[] getParameterValues(String name):根据参数名称获取参数值的数组,用于复选框  hobby=xx&hobby=game
+		3. Enumeration<String> getParameterNames():获取所有请求的参数名称
+		4. Map<String,String[]> getParameterMap():获取所有参数的map集合
+
+public class Servlet03 extends HttpServlet {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        String username = request.getParameter("username");
+        System.out.println(username);
+
+    }
+
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        this.doPost(request, response); //简化
+    }
+}
+//cass
+
+
+protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        Map<String, String[]> parameterMap = request.getParameterMap();
+        Set<String> strings = parameterMap.keySet();
+        for (String string : strings) {
+            System.out.println(string);
+            String[] strings1 = parameterMap.get(string); //根据键获取值的数组
+            for (String s : strings1) {
+                System.out.println(s);
+            }
+            System.out.println("==================");
+
+        }
+		
+//中文乱码问题解决
+在获取参数前，设置request的编码
+request.setCharacterEncoding("utf-8");
+
+//请求转发  一种在服务器内部的资源跳转方式
+request.getRequestDispatcher("/req03").forward(request,response);
+//reu04....
+//req03...
+*特点：
+	1. 浏览器地址栏路径不发生变化
+	2. 只能转发到当前服务器内部资源中。
+	3. 转发是一次请求
+	
+共享数据：
+	* 域对象：一个有作用范围的对象，可以在范围内共享数据
+	* request域：代表一次请求的范围，一般用于请求转发的多个资源中共享数据
+	* 方法：
+		1. void setAttribute(String name,Object obj):存储数据
+		2. Object getAttitude(String name):通过键获取值
+		3. void removeAttribute(String name):通过键移除键值对
+		
+获取ServletContext：
+	* ServletContext getServletContext()
+ystem.out.println(request.getServletContext()); //org.apache.catalina.core.ApplicationContextFacade@657d3c9c
+
+//Login case
+
+BeanUtils工具类，简化数据封装
+	* 用于封装JavaBean的
+	1. JavaBean：标准的Java类
+		1. 要求：
+			1. 类必须被public修饰
+			2. 必须提供空参的构造器
+			3. 成员变量必须使用private修饰
+			4. 提供公共setter和getter方法
+		2. 功能：封装数据
+
+
+	2. 概念：
+		成员变量：
+		属性：setter和getter方法截取后的产物
+			例如：getUsername() --> Username--> username
+
+
+	3. 方法：
+		1. setProperty()
+		2. getProperty()
+		3. populate(Object obj , Map map):将map集合的键值对信息，封装到对应的JavaBean对象中

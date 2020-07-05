@@ -1,0 +1,246 @@
+## Filter
+@WebFilter("/*") //filter before request for all resources
+public class Filter1 implements Filter {
+    @Override
+    public void init(FilterConfig filterConfig) throws ServletException {
+
+    }
+
+    @Override
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
+        System.out.println("filter...");
+        filterChain.doFilter(servletRequest,servletResponse); //pass
+    }
+
+    @Override
+    public void destroy() {
+
+    }
+}
+
+XML config
+<filter>
+	<filter-name>demo1</filter-name>
+	<filter-class>cn.itcast.web.filter.FilterDemo1</filter-class>
+</filter>
+<filter-mapping>
+	<filter-name>demo1</filter-name>
+	<!-- 拦截路径 -->
+	<url-pattern>/index.jsp</url-pattern>
+</filter-mapping>
+
+过滤器生命周期方法
+	1. init:在服务器启动后，会创建Filter对象，然后调用init方法。只执行一次。用于加载资源
+	2. doFilter:每一次请求被拦截资源时，会执行。执行多次
+	3. destroy:在服务器关闭后，Filter对象被销毁。如果服务器是正常关闭，则会执行destroy方法。只执行一次。用于释放资源
+	
+拦截路径配置：
+	1. 具体资源路径： /index.jsp  
+	2. 拦截目录： "/user/*"	
+	3. 后缀名拦截： "*.jsp"		
+	4. 拦截所有资源："/*"	
+
+拦截方式配置：资源被访问的方式
+	* 注解配置：
+		* 设置dispatcherTypes属性
+			1. REQUEST：默认值。浏览器直接请求资源
+			2. FORWARD：转发访问资源
+			3. INCLUDE：包含访问资源
+			4. ERROR：错误跳转资源
+			5. ASYNC：异步访问资源	
+@WebFilter(value = "/*", dispatcherTypes = DispatcherType.REQUEST)
+@WebFilter(value = "/*", dispatcherTypes = {DispatcherType.REQUEST,DispatcherType.FORWARD})
+
+过滤器链(配置多个过滤器)
+	* 执行顺序：如果有两个过滤器：过滤器1和过滤器2
+		1. 过滤器1
+		2. 过滤器2
+		3. 资源执行
+		4. 过滤器2
+		5. 过滤器1 
+
+	* 过滤器先后顺序问题：
+		注解配置：按照类名的字符串比较规则比较，值小的先执行
+		 * AFilter 和 BFilter，AFilter先执行。
+		 
+==========================================================================================
+## Case: Login filter
+@WebFilter("/*")
+public class LoginFilter implements Filter {
+    public void destroy() {
+    }
+
+    public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException {
+        HttpServletRequest request = (HttpServletRequest) req; //to get uri
+        String uri = request.getRequestURI();
+        if (uri.contains("/login.jsp") || uri.contains("/loginServlet") || uri.contains("/checkCodeServlet") || uri.contains("/css/") || uri.contains("/js/") || uri.contains("/fonts/")) {
+            chain.doFilter(req, resp); //pass
+        } else {
+            if (request.getSession().getAttribute("user_login") != null) {
+                chain.doFilter(req, resp);
+            } else {
+                request.setAttribute("error_msg","You have to login first!");
+                request.getRequestDispatcher("/login.jsp").forward(request,resp);
+            }
+        }
+
+    }
+
+    public void init(FilterConfig config) throws ServletException {
+
+    }
+
+}
+
+========================================================================
+1. Proxy Pattern
+* 设计模式：一些通用的解决固定问题的方式
+	1. 装饰模式
+	2. 代理模式
+		* 概念：
+			1. 真实对象：被代理的对象
+			2. 代理对象：
+			3. 代理模式：代理对象代理真实对象，达到增强真实对象功能的目的
+		* 实现方式：
+			1. 静态代理：有一个类文件描述代理模式
+			2. 动态代理：在内存中形成代理类
+				* 实现步骤：
+					1. 代理对象和真实对象实现相同的接口
+					2. 代理对象 = Proxy.newProxyInstance();
+					3. 使用代理对象调用方法。
+					4. 增强方法
+
+				* 增强方式：
+					1. 增强参数列表
+					2. 增强返回值类型
+					3. 增强方法体执行逻辑	
+					
+public interface SellComputer {
+    public String sell(int money);
+}
+
+/**
+ * Original class
+ */
+public class Lenovo implements SellComputer{
+    @Override
+    public String sell(int money) {
+        System.out.println("sell for "+ money);
+        return "Le computer";
+    }
+}
+
+public class ProxyTest {
+    public static void main(String[] args) {
+        Lenovo le = new Lenovo();
+        
+		//Proxy
+		SellComputer proxy_lenovo = (SellComputer) Proxy.newProxyInstance(le.getClass().getClassLoader(), le.getClass().getInterfaces(), new InvocationHandler() { 
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                Object obj = method.invoke(le, args);
+                return obj;
+            }
+
+        });
+        le.sell(22); //sell for 22
+        proxy_lenovo.sell(23); //sell for 23
+
+
+    }
+}
+
+//增强参数列表
+if ("sell".equals(method.getName())) {
+                    int proxy_money = ((int) args[0])*2;
+                    Object obj = method.invoke(le, proxy_money);
+                    return obj;
+                }
+				
+//增强返回值
+return obj.toString() + " more...";
+
+## Case: Sensitive Word Filter
+@WebFilter("/*")
+public class SensitiveWordsFilter implements Filter {
+    public void destroy() {
+    }
+
+    public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain) throws ServletException, IOException {
+        //Create Proxy for enhance getParameter method
+        ServletRequest proxy_req = (ServletRequest) Proxy.newProxyInstance(req.getClass().getClassLoader(), req.getClass().getInterfaces(), new InvocationHandler() {
+            @Override
+            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                if ("getParameter".equals(method.getName())) {
+                    String value = (String) method.invoke(req,args);
+                    if(value != null){
+                        for (String str : wordsList) {
+                            if(value.contains(str)){
+                                System.out.println("value=======================");
+                                value = value.replaceAll(str,"**");
+                            }
+                        }
+                    }
+
+                    return  value;
+                }
+
+                //Other methods will stay the same
+                return method.invoke(req,args);
+            }
+        });
+
+        chain.doFilter(proxy_req, resp);
+    }
+
+    private List<String> wordsList = new ArrayList<>(); //for storing sensitive words
+    public void init(FilterConfig config) throws ServletException {
+        try{
+            //get file real path
+            ServletContext servletContext = config.getServletContext();
+            String realPath = servletContext.getRealPath("/WEB-INF/classes/sensitiveWords.txt");
+
+            BufferedReader br = new BufferedReader(new FileReader(realPath));
+            //load data
+            String line = null;
+            while((line = br.readLine())!=null){
+                wordsList.add(line);
+            }
+
+            br.close();
+
+            System.out.println(wordsList);
+
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+}
+
+## Listener
+* 概念：web的三大组件之一。
+		* 事件监听机制
+			* 事件	：一件事情
+			* 事件源 ：事件发生的地方
+			* 监听器 ：一个对象
+			* 注册监听：将事件、事件源、监听器绑定在一起。 当事件源上发生某个事件后，执行监听器代码
+
+
+	* ServletContextListener:监听ServletContext对象的创建和销毁
+		* 方法：
+			* void contextDestroyed(ServletContextEvent sce) ：ServletContext对象被销毁之前会调用该方法
+			* void contextInitialized(ServletContextEvent sce) ：ServletContext对象创建后会调用该方法
+		* 步骤：
+			1. 定义一个类，实现ServletContextListener接口
+			2. 复写方法
+			3. 配置
+				1. web.xml
+						<listener>
+     					 <listener-class>cn.itcast.web.listener.ContextLoaderListener</listener-class>
+   						</listener>
+
+						* 指定初始化参数<context-param>
+				2. 注解：
+					* @WebListener
+

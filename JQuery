@@ -1,0 +1,342 @@
+## JQuery
+jquery-3.3.1.min.js
+
+<body>
+    <div id="div1">div1...</div>
+    <div id="div2">div2...</div>
+
+    <script>
+        var div1 = $("#div1");
+        alert(div1.html());
+
+
+    </script>
+
+</body>
+
+//js, jq方法不通用
+var $div1 = $(ele);
+alert($div1.innerHTML); //undefined
+		
+js -> jq
+var ele = document.getElementById("div1");
+var $div1 = $(ele);
+alert($div1.html());
+
+jq -> js
+jq[index]
+var div1 = $div1[0];
+alert(div1.innerHTML);
+
+//事件绑定，与window.onload（只有一次，方法被覆盖）区别，可以定义多次
+<script>
+	//jq 入口函数, after dom is loaded
+	$(function () {
+		var btn = $("#btn");
+		btn.click(function () {
+			alert("123");
+		});
+	})
+</script>
+
+
+//css
+btn.css("backgroundColor","pink"); //CTRL to check spelling
+
+//选择器
+1. 基本选择器
+	1. 标签选择器（元素选择器）
+		* 语法： $("html标签名") 获得所有匹配标签名称的元素
+	2. id选择器 
+		* 语法： $("#id的属性值") 获得与指定id属性值匹配的元素
+	3. 类选择器
+		* 语法： $(".class的属性值") 获得与指定的class属性值匹配的元素
+	4. 并集选择器：
+		* 语法： $("选择器1,选择器2....") 获取多个选择器选中的所有元素		
+		$(function () {
+			$("#b1").click(function () {
+				$("#one").css("backgroundColor","pink");
+            });
+
+            $("#b2").click(function () {
+                $("div").css("backgroundColor","pink");
+            });
+
+            $("#b3").click(function () {
+                $(".mini").css("backgroundColor","pink");
+            });
+
+            $("#b4").click(function () {
+                $("span,#two").css("backgroundColor","pink");
+            });
+        });
+		
+2. 层级选择器
+	1. 后代选择器
+		* 语法： $("A B ") 选择A元素内部的所有B元素		
+	2. 子选择器
+		* 语法： $("A > B") 选择A元素内部的所有B子元素
+3. 属性选择器
+	1. 属性名称选择器 
+		* 语法： $("A[属性名]") 包含指定属性的选择器
+	2. 属性选择器
+		* 语法： $("A[属性名='值']") 包含指定属性等于指定值的选择器
+	3. 复合属性选择器
+		* 语法： $("A[属性名='值'][]...") 包含多个属性条件的选择器		
+		$(function () {
+			// <input type="button" value=" 含有属性title 的div元素背景色为红色"  id="b1"/>
+			$("#b1").click(function () {
+				$("div[title]").css("backgroundColor","pink");
+            });
+			// <input type="button" value=" 属性title值等于test的div元素背景色为红色"  id="b2"/>
+            $("#b2").click(function () {
+                $("div[title='test']").css("backgroundColor","pink");
+            });
+			// <input type="button" value=" 属性title值不等于test的div元素(没有属性title的也将被选中)背景色为红色"  id="b3"/>
+            $("#b3").click(function () {
+                $("div[title!='test']").css("backgroundColor","pink");
+            });
+			// <input type="button" value=" 属性title值 以te开始 的div元素背景色为红色"  id="b4"/>
+            $("#b4").click(function () {
+                $("div[title^='te']").css("backgroundColor","pink");
+            });
+			// <input type="button" value=" 属性title值 以est结束 的div元素背景色为红色"  id="b5"/>
+            $("#b5").click(function () {
+                $("div[title$='est']").css("backgroundColor","pink");
+            });
+			// <input type="button" value="属性title值 含有es的div元素背景色为红色"  id="b6"/>
+            $("#b6").click(function () {
+                $("div[title*='es']").css("backgroundColor","pink");
+            });
+			// <input type="button" value="选取有属性id的div元素，然后在结果中选取属性title值含有“es”的 div 元素背景色为红色"  id="b7"/>
+            $("#b7").click(function () {
+                $("div[id][title*='es']").css("backgroundColor","pink");
+            });
+
+        });
+		
+4. 过滤选择器
+	1. 首元素选择器 
+		* 语法： :first 获得选择的元素中的第一个元素
+	2. 尾元素选择器 
+		* 语法： :last 获得选择的元素中的最后一个元素
+	3. 非元素选择器
+		* 语法： :not(selector) 不包括指定内容的元素
+	4. 偶数选择器
+		* 语法： :even 偶数，从 0 开始计数
+	5. 奇数选择器
+		* 语法： :odd 奇数，从 0 开始计数
+	6. 等于索引选择器
+		* 语法： :eq(index) 指定索引元素
+	7. 大于索引选择器 
+		* 语法： :gt(index) 大于指定索引元素
+	8. 小于索引选择器 
+		* 语法： :lt(index) 小于指定索引元素
+	9. 标题选择器
+		* 语法： :header 获得标题（h1~h6）元素，固定写法		
+	$(function () {
+            // <input type="button" value=" 改变第一个 div 元素的背景色为 红色"  id="b1"/>
+			$("#b1").click(function () {
+				$("div:first").css("backgroundColor","pink");
+			});
+
+            // <input type="button" value=" 改变最后一个 div 元素的背景色为 红色"  id="b2"/>
+            $("#b2").click(function () {
+				$("div:last").css("backgroundColor","pink");
+			});
+            // <input type="button" value=" 改变class不为 one 的所有 div 元素的背景色为 红色"  id="b3"/>
+            $("#b3").click(function () {
+                $("div:not(.one)").css("backgroundColor","pink");
+            });
+            // <input type="button" value=" 改变索引值为偶数的 div 元素的背景色为 红色"  id="b4"/>
+            $("#b4").click(function () {
+                $("div:even").css("backgroundColor","pink");
+            });
+
+
+            // <input type="button" value=" 改变索引值为奇数的 div 元素的背景色为 红色"  id="b5"/>
+            $("#b5").click(function () {
+                $("div:odd").css("backgroundColor","pink");
+            });
+            // <input type="button" value=" 改变索引值为大于 3 的 div 元素的背景色为 红色"  id="b6"/>
+            $("#b6").click(function () {
+                $("div:gt(3)").css("backgroundColor","pink");
+            });
+            // <input type="button" value=" 改变索引值为等于 3 的 div 元素的背景色为 红色"  id="b7"/>
+            $("#b7").click(function () {
+                $("div:eq(3)").css("backgroundColor","pink");
+            });
+            // <input type="button" value=" 改变索引值为小于 3 的 div 元素的背景色为 红色"  id="b8"/>
+            $("#b8").click(function () {
+                $("div:lt(3)").css("backgroundColor","pink");
+            });
+            // <input type="button" value=" 改变所有的标题元素的背景色为 红色"  id="b9"/>
+            $("#b9").click(function () {
+                $(":header").css("backgroundColor","pink");
+            });
+
+        });
+	
+5. 表单过滤选择器
+	1. 可用元素选择器 
+		* 语法： :enabled 获得可用元素
+	2. 不可用元素选择器 
+		* 语法： :disabled 获得不可用元素
+	3. 选中选择器 
+		* 语法： :checked 获得单选/复选框选中的元素
+	4. 选中选择器 
+		* 语法： :selected 获得下拉框选中的元素
+	$(function () {
+			// <input type="button" value=" 利用 jQuery 对象的 val() 方法改变表单内可用 <input> 元素的值"  id="b1"/>
+			$("#b1").click(function () {
+				$("input[type='text']:enabled").val("aaa");
+            });
+			// <input type="button" value=" 利用 jQuery 对象的 val() 方法改变表单内不可用 <input> 元素的值"  id="b2"/>
+            $("#b2").click(function () {
+                $("input[type='text']:disabled").val("aaa");
+            });
+			// <input type="button" value=" 利用 jQuery 对象的 length 属性获取复选框选中的个数"  id="b3"/>
+            $("#b3").click(function () {
+                alert($("input[type='checkbox']:checked").length);
+            });
+			// <input type="button" value=" 利用 jQuery 对象的 length 属性获取下拉框选中的个数"  id="b4"/>
+            $("#b4").click(function () {
+                alert($("#job > option:selected").length);
+            });
+
+        });
+
+========================================================================================================================		
+## DOM操作
+1. 内容操作
+// 获取myinput 的value值
+var value = $("#myinput").val();
+alert(value);
+$("#myinput").val("cass")
+
+// 获取mydiv的标签体内容
+var html = $("#mydiv").html();
+alert(html); //<p><a href="#">标题标签</a></p>
+
+// 获取mydiv文本内容
+alert($("#mydiv").text()); //标题标签
+
+2. 属性操作
+	1. 通用属性操作
+		1. attr(): 获取/设置元素的属性
+		2. removeAttr():删除属性
+		3. prop():获取/设置元素的属性
+		4. removeProp():删除属性
+
+		* attr和prop区别？
+			1. 如果操作的是元素的固有属性，则建议使用prop
+			2. 如果操作的是元素自定义的属性，则建议使用attr
+	$(function () {
+            //获取北京节点的name属性值
+			var name = $("#bj").attr("name");
+			alert(name);
+            //设置北京节点的name属性的值为dabeijing
+            $("#bj").attr("name","BEIjing2");
+            alert($("#bj").attr("name"));
+            //新增北京节点的discription属性 属性值是didu
+            $("#bj").attr("discription","didu");
+            //删除北京节点的name属性并检验name属性是否存在
+            $("#bj").removeAttr("name");
+            //获得hobby的的选中状态，固有属性使用prop获取
+			var checked = $("#hobby").prop("checked");
+			alert(checked);
+        });
+		
+	2. class属性操作
+		1. addClass():添加class属性值
+		2. removeClass():删除class属性值
+		3. toggleClass():切换class属性
+			* toggleClass("one"): 
+				* 判断如果元素对象上存在class="one"，则将属性值one删除掉。  如果元素对象上不存在class="one"，则添加
+		4. css():
+		//<input type="button" value="采用属性增加样式(改变id=one的样式)"  id="b1"/>
+			$("#b1").click(function () {
+				$("#one").prop("class","second");
+			});
+            //<input type="button" value=" addClass"  id="b2"/>
+            $("#b2").click(function () {
+                $("#one").addClass("second");
+            });
+            //<input type="button" value="removeClass"  id="b3"/>
+            $("#b3").click(function () {
+                $("#one").removeClass("second");
+            });
+            //<input type="button" value=" 切换样式"  id="b4"/>
+            $("#b4").click(function () {
+                $("#one").toggleClass("second");
+            });
+            //<input type="button" value=" 通过css()获得id为one背景颜色"  id="b5"/>
+            $("#b5").click(function () {
+                var backgroundColor = $("#one").css("backgroundColor");
+                alert(backgroundColor);
+
+            });
+            //<input type="button" value=" 通过css()设置id为one背景颜色为绿色"  id="b6"/>
+            $("#b6").click(function () {
+                 $("#one").css("backgroundColor","green");
+
+            });
+			
+	3. CRUD操作:
+		1. append():父元素将子元素追加到末尾
+			* 对象1.append(对象2): 将对象2添加到对象1元素内部，并且在末尾
+			$("#fk").append($("#city"));
+		2. prepend():父元素将子元素追加到开头
+			* 对象1.prepend(对象2):将对象2添加到对象1元素内部，并且在开头
+		3. appendTo():
+			* 对象1.appendTo(对象2):将对象1添加到对象2内部，并且在末尾
+		4. prependTo()：
+			* 对象1.prependTo(对象2):将对象1添加到对象2内部，并且在开头
+		5. after():添加元素到元素后边
+				* 对象1.after(对象2)： 将对象2添加到对象1后边。对象1和对象2是兄弟关系
+				$("#tj").after($("#fk")); //tj的后面是fk
+		6. before():添加元素到元素前边
+			* 对象1.before(对象2)： 将对象2添加到对象1前边。对象1和对象2是兄弟关系	
+		9. remove():移除元素
+			* 对象.remove():将对象删除掉
+			$("#bj").remove(); //remove bj
+		10. empty():清空元素的所有后代元素。
+			* 对象.empty():将对象的后代元素全部清空，但是保留当前对象以及其属性节点
+			$("#city").empty(); //remove all child eles of city
+			
+==============================================================================
+CASE
+//隔行换色
+$("tr:gt(1):odd").css("backgroundColor","pink");
+$("tr:gt(1):even").css("backgroundColor","yellow");
+
+//全选全不选
+$(function () {
+	$(".cb").click(function () {
+		$(".itemSelect").prop("checked",$(".cb").prop("checked"));
+	})
+})
+
+//追加表情
+//需求：点击qq表情，将其追加到发言框中
+$(function () {
+	$("ul img").click(function () {
+		$(".word").append($(this).clone()); //js对象不能直接调用jq对象方法，要转换: this -> $(this)
+	});
+	
+	
+//下拉列表左右移动
+$(function () {
+	//toRight
+	$("#toRight").click(function () {
+		//获取右边的下拉列表对象，append(左边下拉列表选中的option)
+		$("#rightName").append($("#leftName > option:selected"));
+	});
+
+	//toLeft
+	$("#toLeft").click(function () {
+		//appendTo   获取右边选中的option，将其移动到左边下拉列表中
+		$("#rightName > option:selected").appendTo($("#leftName"));
+
+	});
+});
